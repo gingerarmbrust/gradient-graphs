@@ -30,7 +30,7 @@ savepath <- "~/Desktop" # location of saved plots
 
 gradient <- 2 # value can be 1 or 2
 
-out <- FALSE # value can be TRUE (northward) or FALSE (southward)
+out <- TRUE # FALSE # value can be TRUE (northward) or FALSE (southward)
 
 
 
@@ -192,9 +192,6 @@ dev.off()
 
 
 
-
-
-
 ### MAPS of SST, CURRENTS + SEAFLOW
 
 # location of the ZOOM region (rectangle)
@@ -253,5 +250,31 @@ if(!out)  plot(1,1, pch=NA,asp=1, xlim=c(-165, -150), ylim=c(20,45), xlab="longi
   # zlim <- range(log10(df$abundance),na.rm=T)
   # color.legend(xlim[2]- 0.1 , ylim[1], xlim[2], ylim[2], legend=NA, rect.col=jet.colors(100), gradient='y',align='rb',cex=1.2)
   mtext(substitute(paste("Abundance")), side=4, line=1, cex=1.2)
+
+dev.off()
+
+
+
+
+# NUT + SEAFLOW
+xlim <- c(22,45)
+syn <- subset(stat, pop == 'synecho')
+
+if(out) png(paste0(savepath, "/Gradient-",gradient,"_NUT-SeaFlowOUT.png"), width=114*2, height=114, res=600, units="mm", pointsize=8)
+if(!out) png(paste0(savepath, "/Gradient-",gradient,"_NUT-SeaFlowBACK.png"), width=114*2, height=114, res=600, units="mm", pointsize=8)
+
+par(mar=c(5,5,2,5), oma=c(0,0,0,5))
+plot(syn$lat, syn$abundance, xlim=xlim, ylim=c(0,150), xlab=NA, ylab=NA,type='p', pch=21, col=2, bg='orange')
+mtext("Abundance (cells µL-1)", 2, line=3)
+par(new=T)
+plot(fe.2$Latitude, fe.2$Fe, xlim=xlim, yaxt='n', xaxt='n', xlab=NA, ylab=NA, type='p',pch=21,col=1, bg='grey')
+axis(4)
+mtext("Fe (nmol µL-1)", 4, line=3)
+par(new=T)
+plot(po4.2$lat, po4.2$PO4, xlim=xlim, col=3, yaxt='n', xaxt='n', xlab=NA, ylab=NA, type='l',lwd=2)
+axis(4, line=5)
+mtext("PO4 (nmol µL-1)", 4, line=7)
+mtext('Latitude',side=1, line=3)
+legend("topleft", c("Synechocococus abundance", "Fe concentration", "PO4 concentration"), pch=c(21,21,NA), pt.bg=c('orange','grey',NA), lwd=c(NA,NA,2), col=c(2,1,3), bty='n')
 
 dev.off()
