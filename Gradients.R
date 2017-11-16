@@ -18,7 +18,9 @@ jet.colors2 <- colorRampPalette(c("blue","white","red"))
 #########################
 ### LOCATION OF FILES ###
 #########################
-setwd("~/Desktop/Gradients-Rcode/data/") # location of data
+setwd("~/Desktop/Gradients-Rcode/data/") # location of data for Ginger
+setwd("~/Documents/DATA/SeaFlow/SF_GRADIENTS/Rcode-Ginger/data/") # location of data for Francois
+
 savepath <- "~/Desktop" # location of saved plots
 
 
@@ -60,13 +62,17 @@ if(gradient == 2){
            end <- 3099} ## OUT
   if(!out){ start <- 3100
             end <- 4833} ## BACK
- stat <- read.csv("stat2.csv")
- stat[which(stat$lat < 20),'lat'] <- 33.25
+  stat <- read.csv("stat2.csv")
+    stat[which(stat$lat < 20),'lat'] <- 33.25
+  po4 <- read.delim('PO4__MGL1704.tsv')
+  fe <- read.csv("Gradients-high-resolution-Fe.csv")
+
  if(out) cur <- open.nc("oscar_vel9001.nc")
  if(!out) cur <- open.nc("oscar_vel9006.nc")
  if(out) sst <- open.nc("20170531090000-JPL-L4_GHRSST-SSTfnd-MUR-GLOB-v02.0-fv04.1.nc")
  if(!out) sst <- open.nc("20170609090000-JPL-L4_GHRSST-SSTfnd-MUR-GLOB-v02.0-fv04.1.nc")
  }
+
 
 
 #######################
@@ -127,18 +133,18 @@ data.sigma <- interp(ctd$lat, -ctd$pressure, ctd$sigma, duplicate="mean", nx=200
 data.sal <- interp(ctd$lat, -ctd$pressure, ctd$salinity, duplicate="mean", nx=200)
 data.temp <- interp(ctd$lat, -ctd$pressure, ctd$temp, duplicate="mean", nx=200)
 
+# PO4 (only Gradients 2.0)
+stat$time <- as.POSIXct(stat$time, format = "%FT%T", tz = "GMT")
+po4$time <- as.POSIXct(po4$time, format = "%FT%T", tz = "GMT")
+id <- findInterval(po4$time, stat$time)
+po4$lat <- stat[id,'lat']
+po4$lon <- stat[id,'lon']
+if(out) po4.2 <- po4[1:which(po4$lat == max(po4$lat, na.rm=T))[1],]
+if(!out) po4.2 <- po4[which(po4$lat == max(po4$lat, na.rm=T))[1]:nrow(po4),]
 
-
-
-
-
-
-
-
-
-
-
-
+# Fe (only Gradients 2.0)
+if(out) fe.2 <- fe[1:which(fe$Latitude == max(fe$Latitude, na.rm=T))[1],]
+if(!out) fe.2 <- fe[which(fe$Latitude == max(fe$Latitude, na.rm=T))[1]:nrow(fe),]
 
 
 
