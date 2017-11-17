@@ -18,7 +18,7 @@ jet.colors2 <- colorRampPalette(c("blue","white","red"))
 #########################
 ### LOCATION OF FILES ###
 #########################
-setwd("~/Desktop/Gradients-Rcode/data/") # location of data for Ginger
+setwd("~/Desktop/Gradients_Rcode/data/") # location of data for Ginger
 setwd("~/Documents/DATA/SeaFlow/SF_GRADIENTS/Rcode-Ginger/data/") # location of data for Francois
 
 savepath <- "~/Desktop" # location of saved plots
@@ -47,6 +47,7 @@ if(gradient == 1){
   if(!out){ start <- 5633
             end <- 10785} ## BACK
  stat <- read.csv("stat1.csv")
+ nut <- read.csv("Nitrogen_forODV.csv")
  if(out)  cur <- open.nc("oscar_vel8604.nc")
  if(!out) cur <- open.nc("oscar_vel8610.nc")
  if(out) sst <- open.nc("20160428090000-JPL-L4_GHRSST-SSTfnd-MUR-GLOB-v02.0-fv04.1.nc")
@@ -142,9 +143,37 @@ po4$lon <- stat[id,'lon']
 if(out) po4.2 <- po4[1:which(po4$lat == max(po4$lat, na.rm=T))[1],]
 if(!out) po4.2 <- po4[which(po4$lat == max(po4$lat, na.rm=T))[1]:nrow(po4),]
 
-# Fe (only Gradients 2.0)
-if(out) fe.2 <- fe[1:which(fe$Latitude == max(fe$Latitude, na.rm=T))[1],]
-if(!out) fe.2 <- fe[which(fe$Latitude == max(fe$Latitude, na.rm=T))[1]:nrow(fe),]
+# Fe/NO3 RATIO
+fe <- fe[order(fe$Latitude),]
+po4.2 <- po4.2[order(po4.2$lat),]
+id <- findInterval(fe$Latitude, po4.2$lat)
+fe$po4 <- po4.2[id, 'PO4']
+
+
+
+# NO3 (only for Gradients 1.0)
+nut <- nut[!is.na(nut$Nitrate..uM.),]
+data.nut <- interp(nut$Latitude, -nut$Depth..m., nut$Nitrate..uM., duplicate="mean", nx=200)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -167,6 +196,9 @@ image(data.temp, col=jet.colors(100), main="Temperature");contour(data.temp, add
 image(data.sigma, col=jet.colors(100), main="Density");contour(data.sigma, add=T)
 
 dev.off()
+
+
+
 
 
 ### ADCP
@@ -256,7 +288,21 @@ dev.off()
 
 
 
-# NUT + SEAFLOW
+### NO3 profile
+png(paste0(savepath, "/Gradient-",gradient,"_NO3.png"), width=114*2, height=114, res=600, units="mm", pointsize=8)
+
+par(mfrow=c(2,1), mar=c(4,4,1,1))
+# image(data.nut, col=jet.colors(100), main="NO3 (µmol L-1)");contour(data.nut, add=T)
+# points(nut$Latitude, -nut$Depth..m., pch=16, col='grey')
+plot(nut$Latitude, -nut$Depth..m., pch=16, col=jet.colors(100)[cut(nut$Nitrate..uM.,100)],cex=4, ylab='Depth (m)', xlab="Latitude")
+
+dev.off()
+
+
+
+
+
+### NUT + SEAFLOW
 xlim <- c(22,45)
 syn <- subset(stat, pop == 'synecho')
 
@@ -267,7 +313,7 @@ par(mar=c(5,5,2,5), oma=c(0,0,0,5))
 plot(syn$lat, syn$abundance, xlim=xlim, ylim=c(0,150), xlab=NA, ylab=NA,type='p', pch=21, col=2, bg='orange')
 mtext("Abundance (cells µL-1)", 2, line=3)
 par(new=T)
-plot(fe.2$Latitude, fe.2$Fe, xlim=xlim, yaxt='n', xaxt='n', xlab=NA, ylab=NA, type='p',pch=21,col=1, bg='grey')
+plot(fe$Latitude, fe$Fe, xlim=xlim, yaxt='n', xaxt='n', xlab=NA, ylab=NA, type='p',pch=21,col=1, bg='grey')
 axis(4)
 mtext("Fe (nmol µL-1)", 4, line=3)
 par(new=T)
@@ -276,5 +322,31 @@ axis(4, line=5)
 mtext("PO4 (nmol µL-1)", 4, line=7)
 mtext('Latitude',side=1, line=3)
 legend("topleft", c("Synechocococus abundance", "Fe concentration", "PO4 concentration"), pch=c(21,21,NA), pt.bg=c('orange','grey',NA), lwd=c(NA,NA,2), col=c(2,1,3), bty='n')
+
+par(new=T)
+plot(fe$Latitude, fe$po4/fe$Fe, xlim=xlim, yaxt='n', xaxt='n', xlab=NA, ylab=NA, type='p',pch=21,col=1, bg='purple')
+axis(4, line=5)
+
+dev.off()
+
+
+### NUT + SEAFLOW
+xlim <- c(22,45)
+syn <- subset(stat, pop == 'synecho')
+pico <- subset(stat, pop == 'picoeuk')
+
+png(paste0(savepath, "/Gradient-",gradient,"_RATIO-SeaFlow.png"), width=114*2, height=114, res=600, units="mm", pointsize=8)
+
+par(mar=c(5,5,2,5), oma=c(0,0,0,5))
+plot(syn$lat, syn$abundance, xlim=xlim, ylim=c(0,150), xlab=NA, ylab=NA,type='p', pch=21, col=2, bg='orange')
+par(new=T)
+plot(pico$lat, pico$abundance, xlim=xlim, xlab=NA, ylab=NA,type='p', pch=21, col='darkgreen', bg='green', yaxt='n')
+mtext("Abundance (cells µL-1)", 2, line=3)
+par(new=T)
+plot(fe$Latitude, fe$po4/fe$Fe, xlim=xlim, yaxt='n', xaxt='n', xlab=NA, ylab=NA, type='p',pch=21,col=1, bg='purple', ylim=c(0,2500))
+axis(4)
+mtext("PO4 / Fe ratio", 4, line=3)
+mtext('Latitude',side=1, line=3)
+legend("topleft", c("Synechocococus abundance", "Picoeukaryote abundance", "PO4 / Fe ratio"), pch=c(21,21,21), pt.bg=c('orange','green','purple'), col=c(2,'darkgreen',3), bty='n')
 
 dev.off()
