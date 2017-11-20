@@ -66,8 +66,7 @@ if(gradient == 2){
   stat <- read.csv("stat2.csv")
     stat[which(stat$lat < 20),'lat'] <- 33.25
   po4 <- read.delim('PO4__MGL1704.tsv')
-  fe <- read.csv("Gradients-high-resolution-Fe.csv")
-
+  metals <- read.csv("High-resolution-NiCu.csv")
  if(out) cur <- open.nc("oscar_vel9001.nc")
  if(!out) cur <- open.nc("oscar_vel9006.nc")
  if(out) sst <- open.nc("20170531090000-JPL-L4_GHRSST-SSTfnd-MUR-GLOB-v02.0-fv04.1.nc")
@@ -144,10 +143,10 @@ if(out) po4.2 <- po4[1:which(po4$lat == max(po4$lat, na.rm=T))[1],]
 if(!out) po4.2 <- po4[which(po4$lat == max(po4$lat, na.rm=T))[1]:nrow(po4),]
 
 # Fe/NO3 RATIO
-fe <- fe[order(fe$Latitude),]
+metals <- metals[order(metals$Latitude),]
 po4.2 <- po4.2[order(po4.2$lat),]
-id <- findInterval(fe$Latitude, po4.2$lat)
-fe$po4 <- po4.2[id, 'PO4']
+id <- findInterval(metals$Latitude, po4.2$lat)
+metals$po4 <- po4.2[id, 'PO4']
 
 
 
@@ -301,8 +300,10 @@ dev.off()
 
 
 
+plot(metals$Latitude, metals$Fe, xlim=xlim, yaxt='n', xaxt='n', xlab=NA, ylab=NA, type='p',pch=21,col=1, bg='grey')
 
-### NUT + SEAFLOW
+
+### NUT CONC + SEAFLOW
 xlim <- c(22,45)
 syn <- subset(stat, pop == 'synecho')
 
@@ -313,7 +314,7 @@ par(mar=c(5,5,2,5), oma=c(0,0,0,5))
 plot(syn$lat, syn$abundance, xlim=xlim, ylim=c(0,150), xlab=NA, ylab=NA,type='p', pch=21, col=2, bg='orange')
 mtext("Abundance (cells µL-1)", 2, line=3)
 par(new=T)
-plot(fe$Latitude, fe$Fe, xlim=xlim, yaxt='n', xaxt='n', xlab=NA, ylab=NA, type='p',pch=21,col=1, bg='grey')
+plot(metals$Latitude, metals$Fe, xlim=xlim, yaxt='n', xaxt='n', xlab=NA, ylab=NA, type='p',pch=21,col=1, bg='grey')
 axis(4)
 mtext("Fe (nmol µL-1)", 4, line=3)
 par(new=T)
@@ -324,13 +325,13 @@ mtext('Latitude',side=1, line=3)
 legend("topleft", c("Synechocococus abundance", "Fe concentration", "PO4 concentration"), pch=c(21,21,NA), pt.bg=c('orange','grey',NA), lwd=c(NA,NA,2), col=c(2,1,3), bty='n')
 
 par(new=T)
-plot(fe$Latitude, fe$po4/fe$Fe, xlim=xlim, yaxt='n', xaxt='n', xlab=NA, ylab=NA, type='p',pch=21,col=1, bg='purple')
+plot(metals$Latitude, metals$po4/metals$Fe, xlim=xlim, yaxt='n', xaxt='n', xlab=NA, ylab=NA, type='p',pch=21,col=1, bg='purple')
 axis(4, line=5)
 
 dev.off()
 
 
-### NUT + SEAFLOW
+### NUT RATIO + SEAFLOW
 xlim <- c(22,45)
 syn <- subset(stat, pop == 'synecho')
 pico <- subset(stat, pop == 'picoeuk')
@@ -343,10 +344,23 @@ par(new=T)
 plot(pico$lat, pico$abundance, xlim=xlim, xlab=NA, ylab=NA,type='p', pch=21, col='darkgreen', bg='green', yaxt='n')
 mtext("Abundance (cells µL-1)", 2, line=3)
 par(new=T)
-plot(fe$Latitude, fe$po4/fe$Fe, xlim=xlim, yaxt='n', xaxt='n', xlab=NA, ylab=NA, type='p',pch=21,col=1, bg='purple', ylim=c(0,2500))
+plot(metals$Latitude, metals$po4/metals$Fe, xlim=xlim, yaxt='n', xaxt='n', xlab=NA, ylab=NA, type='p',pch=21,col=1, bg='purple', ylim=c(0,2500))
 axis(4)
 mtext("PO4 / Fe ratio", 4, line=3)
 mtext('Latitude',side=1, line=3)
 legend("topleft", c("Synechocococus abundance", "Picoeukaryote abundance", "PO4 / Fe ratio"), pch=c(21,21,21), pt.bg=c('orange','green','purple'), col=c(2,'darkgreen',3), bty='n')
 
 dev.off()
+
+
+
+### FE, CU and NI conc
+par(mfrow=c(3,1))
+plot(metals$Latitude, metals$Fe,pch=21,col=1, bg='grey')
+plot(metals$Latitude, metals$Ni,pch=21,col=1, bg='red3')
+plot(metals$Latitude, metals$Cu,pch=21,col=1, bg='seagreen3')
+
+### FE / CU ratio
+par(mfrow=c(2,1))
+plot(metals$Latitude, metals$Cu/metals$Fe,pch=21,col=1, bg='gold3', main=c("Cu / Fe ratio"))
+plot(metals$Latitude, metals$Fe/metals$Cu,pch=21,col=1, bg='orangered2', main=c("Fe / Cu ratio"))
