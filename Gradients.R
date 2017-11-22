@@ -1,8 +1,10 @@
 # install.packages(c('RNetCDF', 'maps','mapdata','plotrix','akima','fields','OpenImageR','raster'), dependencies=T) # RUN THIS ONLY THE FIRST TIME
 # note: Do you want to install from sources the package which needs compilation? YES
 
-# DATA are now share usign DAT. Make sure to install DAT command line tools first. To install DAT, just opne the OSX terminal and type:
+# DATA are now share usign DAT. Make sure to install DAT command line tools first. To install DAT, just open the OSX terminal and type:
 # npm install -g dat
+# if you have some weird error, type:
+# sudo npm install -g dat
 
 
 library(RNetCDF)
@@ -26,7 +28,7 @@ path.to.data <- "~/Documents/DATA/SeaFlow/SF_GRADIENTS/Rcode-Ginger/data/" # loc
 setwd(path.to.data)
 
 # Copy DAT data to the location
-system(paste("dat clone dat://bdbcddfe950911dd4abe607593681f030efb6821b93357adb4484bb7cf825735", path.to.data)) # need to do this only once, after that, data will sync automatically as long as DAT is open.
+# system(paste("dat clone dat://bdbcddfe950911dd4abe607593681f030efb6821b93357adb4484bb7cf825735", path.to.data)) # need to do this only once, after that, data will sync automatically as long as DAT is open.
 
 savepath <- "~/Desktop" # location of saved plots
 
@@ -36,7 +38,7 @@ savepath <- "~/Desktop" # location of saved plots
 ### 1. SELECT DATA  ###
 #######################
 
-gradient <- 2 # value can be 1 or 2
+gradient <- 1 # value can be 1 or 2
 
 out <- TRUE # FALSE # value can be TRUE (northward) or FALSE (southward)
 
@@ -62,6 +64,7 @@ if(gradient == 1){
  if(!out) sst <- open.nc("20160501090000-JPL-L4_GHRSST-SSTfnd-MUR-GLOB-v02.0-fv04.1.nc")
  if(out) ctd <- read.csv("uCTD-OUT.csv")
  if(!out) ctd <- read.csv("uCTD-BACK.csv")
+ sfl <- read.csv("time_lat_lon_temp_sal_Grad1.csv")
  }
 
 if(gradient == 2){
@@ -79,6 +82,7 @@ if(gradient == 2){
  if(!out) cur <- open.nc("oscar_vel9006.nc")
  if(out) sst <- open.nc("20170531090000-JPL-L4_GHRSST-SSTfnd-MUR-GLOB-v02.0-fv04.1.nc")
  if(!out) sst <- open.nc("20170609090000-JPL-L4_GHRSST-SSTfnd-MUR-GLOB-v02.0-fv04.1.nc")
+ sfl <- read.csv("time_lat_lon_temp_sal_Grad2.csv")
  }
 
 
@@ -157,16 +161,14 @@ id <- findInterval(metals$Latitude, po4.2$lat)
 metals$po4 <- po4.2[id, 'PO4']
 
 
-
 # NO3 (only for Gradients 1.0)
 nut <- nut[!is.na(nut$Nitrate..uM.),]
 data.nut <- interp(nut$Latitude, -nut$Depth..m., nut$Nitrate..uM., duplicate="mean", nx=200)
 
 
-
-
-
-
+# Underway SST
+if(!out) sfl2 <- sfl[1:which(sfl$lat == max(sfl$lat, na.rm=TRUE))[1],]
+if(out) sfl2 <- sfl[which(sfl$lat == max(sfl$lat, na.rm=TRUE))[1]:nrow(sfl),]
 
 
 
@@ -372,3 +374,9 @@ plot(metals$Latitude, metals$Cu,pch=21,col=1, bg='seagreen3')
 par(mfrow=c(2,1))
 plot(metals$Latitude, metals$Cu/metals$Fe,pch=21,col=1, bg='gold3', main=c("Cu / Fe ratio"))
 plot(metals$Latitude, metals$Fe/metals$Cu,pch=21,col=1, bg='orangered2', main=c("Fe / Cu ratio"))
+
+### Underway SST + SAL
+par(mfrow=c(2,1))
+plot(sfl2$lat, sfl2$temp,col=1, bg='grey', type='l')
+abline(h=18, col=2, lty=2)
+plot(sfl2$lat, sfl2$sal,col=1, bg='grey', type='l') # SAL data for Gradient 1.0 not great
