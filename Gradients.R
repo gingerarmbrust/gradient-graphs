@@ -1,6 +1,9 @@
 # install.packages(c('RNetCDF', 'maps','mapdata','plotrix','akima','fields','OpenImageR','raster'), dependencies=T) # RUN THIS ONLY THE FIRST TIME
 # note: Do you want to install from sources the package which needs compilation? YES
 
+# DATA are now share usign DAT. Make sure to install DAT command line tools first. To install DAT, just opne the OSX terminal and type:
+# npm install -g dat
+
 
 library(RNetCDF)
 library(maps)
@@ -18,10 +21,15 @@ jet.colors2 <- colorRampPalette(c("blue","white","red"))
 #########################
 ### LOCATION OF FILES ###
 #########################
-setwd("~/Desktop/Gradients_Rcode/data/") # location of data for Ginger
-setwd("~/Documents/DATA/SeaFlow/SF_GRADIENTS/Rcode-Ginger/data/") # location of data for Francois
+path.to.data <- "~/Desktop/Gradients_Rcode/data/" # location of data for Ginger
+path.to.data <- "~/Documents/DATA/SeaFlow/SF_GRADIENTS/Rcode-Ginger/data/" # location of data for Francois
+setwd(path.to.data)
+
+# Copy DAT data to the location
+system(paste("dat clone dat://bdbcddfe950911dd4abe607593681f030efb6821b93357adb4484bb7cf825735", path.to.data)) # need to do this only once, after that, data will sync automatically as long as DAT is open.
 
 savepath <- "~/Desktop" # location of saved plots
+
 
 
 #######################
@@ -348,7 +356,7 @@ plot(metals$Latitude, metals$po4/metals$Fe, xlim=xlim, yaxt='n', xaxt='n', xlab=
 axis(4)
 mtext("PO4 / Fe ratio", 4, line=3)
 mtext('Latitude',side=1, line=3)
-legend("topleft", c("Synechocococus abundance", "Picoeukaryote abundance", "PO4 / Fe ratio"), pch=c(21,21,21), pt.bg=c('orange','green','purple'), col=c(2,'darkgreen',3), bty='n')
+legend("topleft", c("Synechocococus abundance", "Picoeukaryote abundance", "PO4 / Fe ratio"), pch=c(21,21,21),=c('orange','green','purple'), col=c(2,'darkgreen',3), bty='n')
 
 dev.off()
 
