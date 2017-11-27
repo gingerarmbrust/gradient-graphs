@@ -64,7 +64,7 @@ if(gradient == 1){
  if(!out) sst <- open.nc("20160501090000-JPL-L4_GHRSST-SSTfnd-MUR-GLOB-v02.0-fv04.1.nc")
  if(out) ctd <- read.csv("uCTD-OUT.csv")
  if(!out) ctd <- read.csv("uCTD-BACK.csv")
- sfl <- read.csv("time_lat_lon_temp_sal_Grad1.csv")
+ sfl <- read.csv("time_lat_lon_temp_sal_Grad2.csv")
  }
 
 if(gradient == 2){
@@ -82,7 +82,7 @@ if(gradient == 2){
  if(!out) cur <- open.nc("oscar_vel9006.nc")
  if(out) sst <- open.nc("20170531090000-JPL-L4_GHRSST-SSTfnd-MUR-GLOB-v02.0-fv04.1.nc")
  if(!out) sst <- open.nc("20170609090000-JPL-L4_GHRSST-SSTfnd-MUR-GLOB-v02.0-fv04.1.nc")
- sfl <- read.csv("time_lat_lon_temp_sal_Grad2.csv")
+ sfl <- read.csv("time_lat_lon_temp_sal_Grad1.csv")
  }
 
 
@@ -170,7 +170,8 @@ data.nut <- interp(nut$Latitude, -nut$Depth..m., nut$Nitrate..uM., duplicate="me
 if(!out) sfl2 <- sfl[1:which(sfl$lat == max(sfl$lat, na.rm=TRUE))[1],]
 if(out) sfl2 <- sfl[which(sfl$lat == max(sfl$lat, na.rm=TRUE))[1]:nrow(sfl),]
 
-
+id <- findInterval(pro$time, sfl2$time)
+pro$temp <- sfl2[id,'temp']
 
 
 
